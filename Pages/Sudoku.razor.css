@@ -1,0 +1,45 @@
+﻿:root {
+}
+
+.outer-grid {
+    display: grid;
+
+    /* ReSharper disable once InvalidValue */
+    grid-template-columns: repeat(3, calc(9rem + 2px));
+    /* ReSharper disable once InvalidValue */
+    grid-template-rows: repeat(3, calc(9rem + 2px));
+
+    border: 1px solid black;
+    width: fit-content;
+    height: fit-content;
+}
+
+.inner-grid {
+    display: grid;
+    grid-template-columns: 3rem 3rem 3rem;
+    grid-template-rows: 3rem 3rem 3rem;
+    border: 0.5px solid black;
+}
+
+.cell {
+    border: 1px dashed rgb(126, 126, 126);
+    text-align: center;
+    height: 3rem;
+    width: 3rem;
+}
+
+.invalid {
+    background-color: rgb(255, 200, 200);
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}

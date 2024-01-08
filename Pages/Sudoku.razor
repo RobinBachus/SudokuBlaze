@@ -1,0 +1,91 @@
+﻿@page "/sudoku"
+@using SudokuBlaze.Data
+
+@inject GameService Game
+
+<h3>Sudoku</h3>
+
+<div class="outer-grid">
+	@for (int outerRow = 0; outerRow < 3; outerRow++)
+	{
+		@for (int outerColumn = 0; outerColumn < 3; outerColumn++)
+		{
+			InnerGrid grid = @_grid[outerRow, outerColumn];
+			<div class="inner-grid" id="@outerRow-@outerColumn" >
+
+				@for (int innerRow = 0; innerRow < 3; innerRow++)
+				{
+					@for (int innerColumn = 0; innerColumn < 3; innerColumn++)
+					{
+						int row = innerRow;
+						int column = innerColumn;
+						int value = @grid.GetCellValue(row, column);
+						<input
+							type="number"
+							class="cell @(value == 0 || IsValid(grid, row, column, value) ? "" : "invalid")" id="@outerRow-@outerColumn&@row-@column"
+							value="@(value == 0 ? "" : value.ToString())"
+							@onchange="(input) => UpdateCellValue(grid, row, column, input.Value)"
+							max="9"
+							min="0"
+							disabled="@(grid.IsFilled || grid.IsStarter(row, column))"/>
+					}
+				}
+			</div>
+		}
+	}
+</div>
+
+<button @onclick="() => { Game.GetHint(); InvokeAsync(StateHasChanged); }">Hint</button>
+
+@code {
+	private InnerGrid[,] _grid = new InnerGrid[3, 3];
+	private readonly bool[,,,] _cellInvalid = new bool[3, 3, 3, 3];
+
+	protected override async void OnInitialized()
+	{
+		_grid = Game.Grid;
+		
+		Game.ClearGame();
+		await InvokeAsync(StateHasChanged);
+
+		await Game.StartNewGame();
+		await InvokeAsync(StateHasChanged);
+	}
+
+	private async void UpdateCellValue(InnerGrid grid, int row, int column, object value)
+	{
+		if (value is null or not string || !int.TryParse((string)value, out int val))
+		{
+			grid.SetCellValue(row, column, 0);
+			await StateChanged(grid, row, column);
+			return;
+		}
+
+		val %= 10;
+		_cellInvalid[grid.Row, grid.Column, row, column] 
+			= !grid.SetCellValue(row, column, val);
+
+		await StateChanged(grid, row, column);
+	}
+
+	private bool IsValid(InnerGrid innerGrid, int row, int column, int value)
+	{
+		// Checks if more than 1 cell in a square, row or column have the same value
+		if (Enumerable.Range(0, 3).Count(i => _grid[innerGrid.Row, innerGrid.Column].RowHasValue(i, value)) > 1) return false;
+		if (Enumerable.Range(0, 3).Count(i => _grid[innerGrid.Row, innerGrid.Column].ColumnHasValue(i, value)) > 1) return false;
+		if (Enumerable.Range(0, 3).Count(i => _grid[innerGrid.Row, i].RowHasValue(row, value)) > 1) return false;
+		return !(Enumerable.Range(0, 3).Count(i => _grid[i, innerGrid.Column].ColumnHasValue(column, value)) > 1);
+	}
+
+	private async Task StateChanged(InnerGrid grid, int row, int column)
+	{
+		// Makes sure the fields value is updated
+		if (grid.GetCellValue(row, column) == 0)
+		{
+			grid.SetCellValue(row, column, 1);
+			await InvokeAsync(StateHasChanged);
+			grid.SetCellValue(row, column, 0);
+		}
+		await InvokeAsync(StateHasChanged);
+	}
+}
