@@ -5,29 +5,35 @@
 
 <h3>Sudoku</h3>
 
+<p>Difficulty: @Game.Difficulty</p>
+
+<h2 class="win-text"
+    hidden="@(!Game.GameWon || !_isInitialized)">
+    Well done! 🤩
+</h2>
+
+
 <div class="outer-grid">
 	@for (int outerRow = 0; outerRow < 3; outerRow++)
 	{
 		@for (int outerColumn = 0; outerColumn < 3; outerColumn++)
 		{
-			InnerGrid grid = @_grid[outerRow, outerColumn];
-			<div class="inner-grid" id="@outerRow-@outerColumn" >
+			InnerGrid grid = _grid[outerRow, outerColumn];
+			<div class="inner-grid @(_isInitialized ? "" : "loading")">
 
 				@for (int innerRow = 0; innerRow < 3; innerRow++)
 				{
 					@for (int innerColumn = 0; innerColumn < 3; innerColumn++)
 					{
-						int row = innerRow;
-						int column = innerColumn;
-						int value = @grid.GetCellValue(row, column);
+					    Cell cell = grid.GetCell(innerRow, innerColumn);
 						<input
-							type="number"
-							class="cell @(value == 0 || IsValid(grid, row, column, value) ? "" : "invalid")" id="@outerRow-@outerColumn&@row-@column"
-							value="@(value == 0 ? "" : value.ToString())"
-							@onchange="(input) => UpdateCellValue(grid, row, column, input.Value)"
-							max="9"
-							min="0"
-							disabled="@(grid.IsFilled || grid.IsStarter(row, column))"/>
+						    type="number"
+					        class="@cell.Classes"
+					        value="@(cell.Value == 0 ? "" : cell.Value)"
+						    @onchange="(input) => UpdateCellValue(cell, input.Value)"
+						    max="9"
+						    min="0"
+						    disabled="@(cell.IsDisabled || !_isInitialized || Game.GameWon)"/>
 					}
 				}
 			</div>
@@ -35,57 +41,72 @@
 	}
 </div>
 
-<button @onclick="() => { Game.GetHint(); InvokeAsync(StateHasChanged); }">Hint</button>
+<button
+    @onclick="StartNewGame"
+    disabled="@(!_isInitialized)">
+	<icon class="oi @(_isInitialized ? "oi-reload" : "oi-action-redo")" />
+    New Game
+</button>
+
+<button
+    @onclick="async () => { Game.GetHint(); await StateChanged(); }"
+    disabled="@(!_isInitialized || Game.GameWon)">
+    Hint
+</button>
+
+<form>
+	<label for="difficulty">Difficulty:</label>
+    <select name="difficulty" id="difficulty" 
+            @onchange="(args) => _selectedDifficulty = (string)args.Value">
+        <option value="Random" selected="@true">Random</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+    </select>
+
+    <p hidden="@(_selectedDifficulty != "Easy")">
+        <icon class="oi oi-warning" />
+        This may take a few tries
+    </p>
+</form>
 
 @code {
 	private InnerGrid[,] _grid = new InnerGrid[3, 3];
-	private readonly bool[,,,] _cellInvalid = new bool[3, 3, 3, 3];
+    private bool _isInitialized;
+	private string _selectedDifficulty = "Random";
 
-	protected override async void OnInitialized()
-	{
+	protected override async Task OnInitializedAsync() => await StartNewGame();
+
+    private async Task StartNewGame()
+    {
+        _isInitialized = false;
 		_grid = Game.Grid;
-		
+
 		Game.ClearGame();
-		await InvokeAsync(StateHasChanged);
+		await StateChanged();
 
-		await Game.StartNewGame();
-		await InvokeAsync(StateHasChanged);
-	}
+		await Game.StartNewGame(_selectedDifficulty);
+		_isInitialized = true;
+		await StateChanged();
+    }
 
-	private async void UpdateCellValue(InnerGrid grid, int row, int column, object value)
+	private async void UpdateCellValue(Cell cell, object value)
 	{
-		if (value is null or not string || !int.TryParse((string)value, out int val))
-		{
-			grid.SetCellValue(row, column, 0);
-			await StateChanged(grid, row, column);
-			return;
-		}
-
+	    int.TryParse((string)value, out int val);
 		val %= 10;
-		_cellInvalid[grid.Row, grid.Column, row, column] 
-			= !grid.SetCellValue(row, column, val);
-
-		await StateChanged(grid, row, column);
+		cell.SetValue(val);
+	    await StateChanged(cell);
 	}
 
-	private bool IsValid(InnerGrid innerGrid, int row, int column, int value)
-	{
-		// Checks if more than 1 cell in a square, row or column have the same value
-		if (Enumerable.Range(0, 3).Count(i => _grid[innerGrid.Row, innerGrid.Column].RowHasValue(i, value)) > 1) return false;
-		if (Enumerable.Range(0, 3).Count(i => _grid[innerGrid.Row, innerGrid.Column].ColumnHasValue(i, value)) > 1) return false;
-		if (Enumerable.Range(0, 3).Count(i => _grid[innerGrid.Row, i].RowHasValue(row, value)) > 1) return false;
-		return !(Enumerable.Range(0, 3).Count(i => _grid[i, innerGrid.Column].ColumnHasValue(column, value)) > 1);
-	}
-
-	private async Task StateChanged(InnerGrid grid, int row, int column)
-	{
-		// Makes sure the fields value is updated
-		if (grid.GetCellValue(row, column) == 0)
-		{
-			grid.SetCellValue(row, column, 1);
-			await InvokeAsync(StateHasChanged);
-			grid.SetCellValue(row, column, 0);
-		}
-		await InvokeAsync(StateHasChanged);
-	}
+    private async Task StateChanged(Cell cell = null)
+    {
+        // Makes sure the fields value is updated
+        if (cell is not null && cell.Value == 0)
+        {
+			cell.SetValue(1);
+            await InvokeAsync(StateHasChanged);
+            cell.SetValue(0);
+        }
+        await InvokeAsync(StateHasChanged);
+    }
 }

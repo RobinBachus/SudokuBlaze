@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <TargetFrameworks>net7.0-android;net7.0-ios;net7.0-maccatalyst</TargetFrameworks>
+        <TargetFrameworks>net7.0-maccatalyst;net7.0-android33.0</TargetFrameworks>
         <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net7.0-windows10.0.19041.0</TargetFrameworks>
         <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
         <!-- <TargetFrameworks>$(TargetFrameworks);net7.0-tizen</TargetFrameworks> -->
@@ -29,6 +29,8 @@
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+        <DefaultLanguage>en</DefaultLanguage>
+        <PackageIcon>sudoku-blaze-favicon-color.png</PackageIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -36,7 +38,6 @@
         <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
 
         <!-- Splash Screen -->
-        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
 
         <!-- Images -->
         <MauiImage Include="Resources\Images\*" />
@@ -50,8 +51,55 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Remove="Resources\AppIcon\Icon.scale-100.png" />
+      <None Remove="Resources\AppIcon\Icon.scale-200.png" />
+      <None Remove="Resources\AppIcon\Icon.scale-400.png" />
+      <None Remove="Resources\AppIcon\Icon.targetsize-16.png" />
+      <None Remove="Resources\AppIcon\Icon.targetsize-16_altform-lightunplated.png" />
+      <None Remove="Resources\AppIcon\Icon.targetsize-16_altform-unplated.png" />
+      <None Remove="Resources\AppIcon\Icon.targetsize-256.png" />
+      <None Remove="Resources\AppIcon\Icon.targetsize-256_altform-lightunplated.png" />
+      <None Remove="Resources\AppIcon\Icon.targetsize-256_altform-unplated.png" />
+      <None Remove="Resources\AppIcon\Icon.targetsize-48.png" />
+      <None Remove="Resources\AppIcon\Icon.targetsize-48_altform-lightunplated.png" />
+      <None Remove="Resources\AppIcon\Icon.targetsize-48_altform-unplated.png" />
+      <None Remove="Resources\Splash\Splash.scale-100.png" />
+      <None Remove="Resources\Splash\Splash.scale-125.png" />
+      <None Remove="Resources\Splash\Splash.scale-150.png" />
+      <None Remove="Resources\Splash\Splash.scale-200.png" />
+      <None Remove="Resources\Splash\Splash.scale-400.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Resources\AppIcon\Icon.scale-100.png" />
+      <Content Include="Resources\AppIcon\Icon.scale-200.png" />
+      <Content Include="Resources\AppIcon\Icon.scale-400.png" />
+      <Content Include="Resources\AppIcon\Icon.targetsize-16.png" />
+      <Content Include="Resources\AppIcon\Icon.targetsize-16_altform-lightunplated.png" />
+      <Content Include="Resources\AppIcon\Icon.targetsize-16_altform-unplated.png" />
+      <Content Include="Resources\AppIcon\Icon.targetsize-256.png" />
+      <Content Include="Resources\AppIcon\Icon.targetsize-256_altform-lightunplated.png" />
+      <Content Include="Resources\AppIcon\Icon.targetsize-256_altform-unplated.png" />
+      <Content Include="Resources\AppIcon\Icon.targetsize-48.png" />
+      <Content Include="Resources\AppIcon\Icon.targetsize-48_altform-lightunplated.png" />
+      <Content Include="Resources\AppIcon\Icon.targetsize-48_altform-unplated.png" />
+      <Content Include="Resources\Splash\Splash.scale-100.png" />
+      <Content Include="Resources\Splash\Splash.scale-125.png" />
+      <Content Include="Resources\Splash\Splash.scale-150.png" />
+      <Content Include="Resources\Splash\Splash.scale-200.png" />
+      <Content Include="Resources\Splash\Splash.scale-400.png" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Resources\AppIcon\sudoku-blaze-favicon-color.png">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+      </None>
     </ItemGroup>
 
 </Project>

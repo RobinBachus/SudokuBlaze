@@ -1,14 +1,9 @@
-﻿:root {
-}
-
-.outer-grid {
+﻿.outer-grid {
     display: grid;
-
-    /* ReSharper disable once InvalidValue */
+    /* ReSharper disable InvalidValue */
     grid-template-columns: repeat(3, calc(9rem + 2px));
-    /* ReSharper disable once InvalidValue */
     grid-template-rows: repeat(3, calc(9rem + 2px));
-
+    /* ReSharper enable InvalidValue */
     border: 1px solid black;
     width: fit-content;
     height: fit-content;
@@ -28,8 +23,35 @@
     width: 3rem;
 }
 
-.invalid {
-    background-color: rgb(255, 200, 200);
+    .cell.invalid {
+        background-color: rgb(255, 200, 200) !important;
+    }
+
+    .cell.hint {
+        background-color: #D1FFBD;
+        color: green;
+    }
+
+    .cell.disabled {
+        color: gray;
+        background-color: lightgray;
+    }
+
+.loading {
+    border: 2px solid transparent;
+    border-image: linear-gradient(to bottom, #ddd, #aaa, #444, #ddd);
+    animation: gradientAnimation 2s linear infinite;
+    border-image-slice: 1;
+}
+
+.win-text {
+    color: green;
+    background-color: #D1FFBD;
+    width: fit-content;
+}
+
+button {
+    margin-top: 1rem;
 }
 
 /* Chrome, Safari, Edge, Opera */
@@ -42,4 +64,26 @@ input::-webkit-inner-spin-button {
 /* Firefox */
 input[type=number] {
     -moz-appearance: textfield;
+}
+
+@keyframes gradientAnimation {
+    0% {
+        border-image: linear-gradient(to bottom, #ddd, #aaa, #444);
+        border-image-slice: 1;
+    }
+
+    33% {
+        border-image: linear-gradient(to bottom, #444, #ddd, #aaa);
+        border-image-slice: 1;
+    }
+
+    66% {
+        border-image: linear-gradient(to bottom, #aaa, #444, #ddd);
+        border-image-slice: 1;
+    }
+
+    100% {
+        border-image: linear-gradient(to bottom, #ddd, #aaa, #444);
+        border-image-slice: 1;
+    }
 }
