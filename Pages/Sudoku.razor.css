@@ -87,3 +87,20 @@ input[type=number] {
         border-image-slice: 1;
     }
 }
+
+@media only screen and (max-width: 600px) {
+    .outer-grid {
+        grid-template-columns: repeat(3, calc(6rem + 2px));
+        grid-template-rows: repeat(3, calc(6rem + 2px));
+    }
+
+    .inner-grid {
+        grid-template-columns: repeat(3, 2rem);
+        grid-template-rows: repeat(3, 2rem);
+    }
+
+    .cell {
+        height: 2rem;
+        width: 2rem;
+    }
+}
