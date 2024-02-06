@@ -1,11 +1,14 @@
 ﻿@page "/sudoku"
 @using SudokuBlaze.Data
+@using System.Timers
 
 @inject GameService Game
 
 <h3>Sudoku</h3>
 
 <p>Difficulty: @Game.Difficulty</p>
+
+<p>Time: @($"{Game.GameTime.Minutes:D2}:{Game.GameTime.Seconds:D2}")</p>
 
 <h2 class="win-text"
     hidden="@(!Game.GameWon || !_isInitialized)">
@@ -71,21 +74,24 @@
 </form>
 
 @code {
-	private InnerGrid[,] _grid = new InnerGrid[3, 3];
+    private InnerGrid[,] _grid = new InnerGrid[3, 3];
     private bool _isInitialized;
-	private string _selectedDifficulty = "Random";
+    private string _selectedDifficulty = "Random";
+    private readonly Timer _timer = new(TimeSpan.FromSeconds(1));
 
-	protected override async Task OnInitializedAsync() => await StartNewGame();
+    protected override async Task OnInitializedAsync() => await StartNewGame();
 
     private async Task StartNewGame()
     {
         _isInitialized = false;
-		_grid = Game.Grid;
+        _grid = Game.Grid;
 
-		Game.ClearGame();
-		await StateChanged();
+        Game.ClearGame();
+        await StateChanged();
 
-		await Game.StartNewGame(_selectedDifficulty);
+        _timer.Elapsed += async (_, _) => await StateChanged();
+
+        await Game.StartNewGame(_selectedDifficulty);
 		_isInitialized = true;
 		await StateChanged();
     }
@@ -95,6 +101,7 @@
 	    int.TryParse((string)value, out int val);
 		val %= 10;
 		cell.SetValue(val);
+		if (Game.GameWon) Game.StopTimer();
 	    await StateChanged(cell);
 	}
 

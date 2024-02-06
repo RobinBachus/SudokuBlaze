@@ -1,5 +1,7 @@
 ﻿#nullable enable
+using System.Diagnostics;
 using Newtonsoft.Json;
+using Timer = System.Timers.Timer;
 
 namespace SudokuBlaze.Data
 {
@@ -8,13 +10,13 @@ namespace SudokuBlaze.Data
 		public InnerGrid[,] Grid { get; } = new InnerGrid[3,3];
 		public bool GameWon => Grid.Cast<InnerGrid>().All(innerGrid => innerGrid.IsSolved());
 		public string Difficulty { get; private set; } = "Not started";
+		public TimeSpan GameTime => _gameTimer.Elapsed;
 
-		private readonly HttpClient _httpClient;
+		private readonly HttpClient _httpClient = new();
+		private readonly Stopwatch _gameTimer = new();
 
 		public GameService()
 		{
-			_httpClient = new HttpClient();
-
 			for (int row = 0; row < 3; row++)
 			{
 				for (int column = 0; column < 3; column++)
@@ -31,6 +33,8 @@ namespace SudokuBlaze.Data
 			Difficulty = "Not started";
 		}
 
+		public void StopTimer() => _gameTimer.Stop();
+		
 		public async Task StartNewGame(string difficulty)
 		{
 			// I wish I could do it better, but I don't want to change api so ¯\_(ツ)_/¯
@@ -48,6 +52,7 @@ namespace SudokuBlaze.Data
 			}
 
 			Difficulty = newGrid.difficulty;
+			_gameTimer.Restart();
 		}
 
 		private async Task<DosukuJsonData.Grid?> GetNewGrid()
