@@ -1,7 +1,6 @@
 ﻿#nullable enable
 using System.Diagnostics;
 using Newtonsoft.Json;
-using Timer = System.Timers.Timer;
 
 namespace SudokuBlaze.Data
 {
@@ -10,7 +9,10 @@ namespace SudokuBlaze.Data
 		public InnerGrid[,] Grid { get; } = new InnerGrid[3,3];
 		public bool GameWon => Grid.Cast<InnerGrid>().All(innerGrid => innerGrid.IsSolved());
 		public string Difficulty { get; private set; } = "Not started";
-		public TimeSpan GameTime => _gameTimer.Elapsed;
+
+		private string TimeFormat => _gameTimer.Elapsed.TotalHours < 1 ? @"mm\:ss" : @"hh\:mm\:ss";
+		public string ElapsedTime => _gameTimer.Elapsed.ToString(TimeFormat);
+		public bool TimerRunning => _gameTimer.IsRunning;
 
 		private readonly HttpClient _httpClient = new();
 		private readonly Stopwatch _gameTimer = new();
@@ -85,6 +87,7 @@ namespace SudokuBlaze.Data
 			}
 
 			return;
+
 
 			int Rng() => random.Next(3);
 		}

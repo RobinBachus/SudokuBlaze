@@ -8,11 +8,11 @@
 
 <p>Difficulty: @Game.Difficulty</p>
 
-<p>Time: @($"{Game.GameTime.Minutes:D2}:{Game.GameTime.Seconds:D2}")</p>
+<p>Time: @Game.ElapsedTime</p>
 
 <h2 class="win-text"
-    hidden="@(!Game.GameWon || !_isInitialized)">
-    Well done! 🤩
+	hidden="@(!Game.GameWon || !_isInitialized)">
+	Well done! 🤩
 </h2>
 
 
@@ -22,21 +22,21 @@
 		@for (int outerColumn = 0; outerColumn < 3; outerColumn++)
 		{
 			InnerGrid grid = _grid[outerRow, outerColumn];
-			<div class="inner-grid @(_isInitialized ? "" : "loading")">
+			<div class="inner-grid @(_isInitialized ? "" : "loading") @(Game.GameWon ? "game-won" : "")">
 
 				@for (int innerRow = 0; innerRow < 3; innerRow++)
 				{
 					@for (int innerColumn = 0; innerColumn < 3; innerColumn++)
 					{
-					    Cell cell = grid.GetCell(innerRow, innerColumn);
+						Cell cell = grid.GetCell(innerRow, innerColumn);
 						<input
-						    type="number"
-					        class="@cell.Classes"
-					        value="@(cell.Value == 0 ? "" : cell.Value)"
-						    @onchange="(input) => UpdateCellValue(cell, input.Value)"
-						    max="9"
-						    min="0"
-						    disabled="@(cell.IsDisabled || !_isInitialized || Game.GameWon)"/>
+							type="number"
+							class="@cell.Classes"
+							value="@(cell.Value == 0 ? "" : cell.Value)"
+							@onchange="(input) => UpdateCellValue(cell, input.Value)"
+							max="9"
+							min="0"
+							disabled="@(cell.IsDisabled || !_isInitialized || Game.GameWon)"/>
 					}
 				}
 			</div>
@@ -45,75 +45,85 @@
 </div>
 
 <button
-    @onclick="StartNewGame"
-    disabled="@(!_isInitialized)">
+	@onclick="StartNewGame"
+	disabled="@(!_isInitialized)">
 	<icon class="oi @(_isInitialized ? "oi-reload" : "oi-action-redo")" />
-    New Game
+	New Game
 </button>
 
 <button
-    @onclick="async () => { Game.GetHint(); await StateChanged(); }"
-    disabled="@(!_isInitialized || Game.GameWon)">
-    Hint
+	@onclick="async () => { Game.GetHint(); await StateChanged(); }"
+	disabled="@(!_isInitialized || Game.GameWon)">
+	Hint
 </button>
 
 <form>
 	<label for="difficulty">Difficulty:</label>
-    <select name="difficulty" id="difficulty" 
-            @onchange="(args) => _selectedDifficulty = (string)args.Value">
-        <option value="Random" selected="@true">Random</option>
-        <option value="Easy">Easy</option>
-        <option value="Medium">Medium</option>
-        <option value="Hard">Hard</option>
-    </select>
+	<select name="difficulty" id="difficulty" 
+			@onchange="(args) => _selectedDifficulty = (string)args.Value">
+		<option value="Random" selected="@true">Random</option>
+		<option value="Easy">Easy</option>
+		<option value="Medium">Medium</option>
+		<option value="Hard">Hard</option>
+	</select>
 
-    <p hidden="@(_selectedDifficulty != "Easy")">
-        <icon class="oi oi-warning" />
-        This may take a few tries
-    </p>
+	<p hidden="@(_selectedDifficulty != "Easy")">
+		<icon class="oi oi-warning" />
+		This may take a few tries
+	</p>
 </form>
 
 @code {
-    private InnerGrid[,] _grid = new InnerGrid[3, 3];
-    private bool _isInitialized;
-    private string _selectedDifficulty = "Random";
-    private readonly Timer _timer = new(TimeSpan.FromSeconds(1));
+	private InnerGrid[,] _grid = new InnerGrid[3, 3];
+	private bool _isInitialized;
+	private string _selectedDifficulty = "Random";
+	private readonly Timer _timer = new(TimeSpan.FromSeconds(1));
 
-    protected override async Task OnInitializedAsync() => await StartNewGame();
+	protected override async Task OnInitializedAsync()
+	{
+		_timer.Elapsed += async (_, _) => await StateChanged();
+		_grid = Game.Grid;
+		await StartNewGame();
+	}
 
-    private async Task StartNewGame()
-    {
-        _isInitialized = false;
-        _grid = Game.Grid;
+	private async Task StartNewGame()
+	{
+		_isInitialized = false;
 
-        Game.ClearGame();
-        await StateChanged();
+		Game.ClearGame();
+		await StateChanged();
 
-        _timer.Elapsed += async (_, _) => await StateChanged();
+		_timer.Start();
 
-        await Game.StartNewGame(_selectedDifficulty);
+		await Game.StartNewGame(_selectedDifficulty);
 		_isInitialized = true;
 		await StateChanged();
-    }
+	}
 
 	private async void UpdateCellValue(Cell cell, object value)
 	{
-	    int.TryParse((string)value, out int val);
+		int.TryParse((string)value, out int val);
 		val %= 10;
 		cell.SetValue(val);
 		if (Game.GameWon) Game.StopTimer();
-	    await StateChanged(cell);
+		await StateChanged(cell);
 	}
 
-    private async Task StateChanged(Cell cell = null)
-    {
-        // Makes sure the fields value is updated
-        if (cell is not null && cell.Value == 0)
-        {
+	private async Task StateChanged(Cell cell = null)
+	{
+		if (Game.GameWon && Game.TimerRunning)
+		{
+			Game.StopTimer();
+			_timer.Stop();
+		}
+
+		// Makes sure the fields value is updated
+		if (cell is not null && cell.Value == 0)
+		{
 			cell.SetValue(1);
-            await InvokeAsync(StateHasChanged);
-            cell.SetValue(0);
-        }
-        await InvokeAsync(StateHasChanged);
-    }
+			await InvokeAsync(StateHasChanged);
+			cell.SetValue(0);
+		}
+		await InvokeAsync(StateHasChanged);
+	}
 }

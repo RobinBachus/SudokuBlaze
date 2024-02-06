@@ -40,7 +40,14 @@
 .loading {
     border: 2px solid transparent;
     border-image: linear-gradient(to bottom, #ddd, #aaa, #444, #ddd);
-    animation: gradientAnimation 2s linear infinite;
+    animation: loading_animation 2s linear infinite;
+    border-image-slice: 1;
+}
+
+.game-won {
+    border: 2px solid transparent;
+    border-image: linear-gradient(to bottom, lightgreen, greenyellow, green);
+    animation: win_animation 2s linear infinite;
     border-image-slice: 1;
 }
 
@@ -66,7 +73,30 @@ input[type=number] {
     -moz-appearance: textfield;
 }
 
-@keyframes gradientAnimation {
+@keyframes win_animation {
+    0% {
+        border-image: linear-gradient(to bottom, lightgreen, greenyellow, green);
+        border-image-slice: 1;
+    }
+
+    33% {
+        border-image: linear-gradient(to bottom, green, lightgreen, greenyellow);
+        border-image-slice: 1;
+    }
+
+    66% {
+        border-image: linear-gradient(to bottom, greenyellow, green, lightgreen);
+        border-image-slice: 1;
+    }
+
+    100% {
+        border-image: linear-gradient(to bottom, lightgreen, greenyellow, green);
+        border-image-slice: 1;
+    }
+}
+
+
+@keyframes loading_animation {
     0% {
         border-image: linear-gradient(to bottom, #ddd, #aaa, #444);
         border-image-slice: 1;
